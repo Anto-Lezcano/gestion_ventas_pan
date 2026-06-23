@@ -1,0 +1,52 @@
+generator client {
+  provider        = "prisma-client-js"
+  previewFeatures = ["driverAdapters"]
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+model User {
+  name     String    @id
+  orders   Order[]
+  expenses Expense[]
+}
+
+model Bread {
+  id             String  @id @default(uuid())
+  name           String
+  description    String?
+  price          Float
+  promotionPrice Float? // Precio si se compran 2 o más, de acuerdo a la promoción
+  orders         Order[]
+}
+
+model Order {
+  id           String   @id @default(uuid())
+  titular      String
+  breadId      String
+  bread        Bread    @relation(fields: [breadId], references: [id])
+  quantity     Int
+  phone        String?
+  isDelivery   Boolean
+  deliveryCost Float?
+  status       String   @default("PEDIDO") // PEDIDO, EN_PROCESO, TERMINADO, ENTREGADO
+  isPaid       Boolean  @default(false)
+  agentName    String // "anto" or "cami"
+  agent        User     @relation(fields: [agentName], references: [name])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+model Expense {
+  id          String   @id @default(uuid())
+  description String
+  amount      Float
+  agentName   String // "anto" or "cami"
+  agent       User     @relation(fields: [agentName], references: [name])
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
