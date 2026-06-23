@@ -1,36 +1,57 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# 🥖 Gestión de Ventas de Pan
 
-## Getting Started
+Aplicación web full-stack diseñada para optimizar y controlar la producción, venta y entrega de pan casero. Construida con tecnologías modernas para garantizar rapidez y fluidez en la experiencia de usuario.
 
-First, run the development server:
+## ✨ Características Principales
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
-```
+- **Dashboard Unificado**: Visualización en tiempo real de todos los pedidos mediante tarjetas dinámicas e interactivas.
+- **Gestión de Estados**: Flujo de trabajo de 4 pasos para cada pedido (`Pedido` -> `En Proceso` -> `Terminado` -> `Entregado`).
+- **Resumen de Producción**: Contador automático e inteligente que suma exclusivamente los panes que deben amasarse y cocinarse.
+- **Control Financiero**: Módulo de gastos (`Gastos`) integrado para registrar las compras de materia prima, categorizado por responsable.
+- **Sistema de Envío**: Diferenciación entre "Retiro" y "Envío", con asignación de costos de delivery y accesos directos de WhatsApp para contactar al cliente.
+- **Autenticación Rápida**: "Mini Login" basado en selección rápida para Anto y Cami.
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+## 🛠️ Stack Tecnológico
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+- **Frontend:** [Next.js](https://nextjs.org/) (App Router), React 19, Tailwind CSS.
+- **Animaciones:** GSAP y Lenis para scroll suave y microinteracciones.
+- **Iconografía:** Lucide React.
+- **Backend:** Next.js Server Actions.
+- **Base de Datos:** PostgreSQL alojado en [Supabase](https://supabase.com/).
+- **ORM:** [Prisma](https://www.prisma.io/) con `@prisma/adapter-pg` y Connection Pooling (`pg`).
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+## 🚀 Instalación y Ejecución Local
 
-## Learn More
+1. Clonar el repositorio:
+   ```bash
+   git clone https://github.com/Anto-Lezcano/gestion_ventas_pan.git
+   cd gestion_ventas_pan
+   ```
 
-To learn more about Next.js, take a look at the following resources:
+2. Instalar las dependencias:
+   ```bash
+   npm install
+   ```
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+3. Configurar variables de entorno:
+   Crear un archivo `.env` en la raíz del proyecto y agregar las credenciales de Supabase:
+   ```env
+   DATABASE_URL="postgresql://[USUARIO]:[CONTRASEÑA]@aws-1-us-west-2.pooler.supabase.com:6543/postgres?pgbouncer=true"
+   DIRECT_URL="postgresql://[USUARIO]:[CONTRASEÑA]@aws-1-us-west-2.pooler.supabase.com:5432/postgres"
+   ```
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+4. Sincronizar la base de datos:
+   ```bash
+   npx prisma db push
+   npx prisma generate
+   ```
 
-## Deploy on Vercel
+5. Iniciar el servidor de desarrollo:
+   ```bash
+   npm run dev
+   ```
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+6. Abrir en el navegador [http://localhost:3000](http://localhost:3000).
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+---
+*Desarrollado con ❤️ para optimizar la panadería de Anto y Cami.*
