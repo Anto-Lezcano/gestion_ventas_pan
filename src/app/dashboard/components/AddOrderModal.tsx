@@ -19,7 +19,7 @@ export default function AddOrderModal({
 }) {
   const [titular, setTitular] = useState("");
   const [phone, setPhone] = useState("");
-  const [items, setItems] = useState<{ breadId: string; quantity: number | string }[]>([{ breadId: "", quantity: 1 }]);
+  const [items, setItems] = useState<{ breadId: string; flavor?: string; quantity: number | string }[]>([{ breadId: "", quantity: 1 }]);
   const [isDelivery, setIsDelivery] = useState(false);
   const [deliveryCost, setDeliveryCost] = useState("");
   const [isPaid, setIsPaid] = useState(false);
@@ -30,15 +30,15 @@ export default function AddOrderModal({
       setTitular(orderToEdit.titular);
       setPhone(orderToEdit.phone || "");
       setItems(orderToEdit.items && orderToEdit.items.length > 0 
-        ? orderToEdit.items.map((i: any) => ({ breadId: i.breadId, quantity: i.quantity })) 
-        : [{ breadId: breads[0]?.id || "", quantity: 1 }]);
+        ? orderToEdit.items.map((i: any) => ({ breadId: i.breadId, flavor: i.flavor || "", quantity: i.quantity })) 
+        : [{ breadId: breads[0]?.id || "", flavor: breads[0]?.flavors?.[0] || "", quantity: 1 }]);
       setIsDelivery(orderToEdit.isDelivery);
       setDeliveryCost(orderToEdit.deliveryCost !== null ? orderToEdit.deliveryCost.toString() : "");
       setIsPaid(orderToEdit.isPaid);
     } else {
       setTitular("");
       setPhone("");
-      setItems([{ breadId: breads[0]?.id || "", quantity: 1 }]);
+      setItems([{ breadId: breads[0]?.id || "", flavor: breads[0]?.flavors?.[0] || "", quantity: 1 }]);
       setIsDelivery(false);
       setDeliveryCost("");
       setIsPaid(false);
@@ -56,6 +56,7 @@ export default function AddOrderModal({
         phone,
         items: items.map(item => ({
           breadId: item.breadId,
+          flavor: item.flavor || undefined,
           quantity: typeof item.quantity === 'number' ? item.quantity : (parseInt(item.quantity as string) || 1)
         })),
         isDelivery,
@@ -76,16 +77,23 @@ export default function AddOrderModal({
   };
 
   const addItem = () => {
-    setItems([...items, { breadId: breads[0]?.id || "", quantity: 1 }]);
+    setItems([...items, { breadId: breads[0]?.id || "", flavor: breads[0]?.flavors?.[0] || "", quantity: 1 }]);
   };
 
   const removeItem = (index: number) => {
     setItems(items.filter((_, i) => i !== index));
   };
 
-  const updateItem = (index: number, field: "breadId" | "quantity", value: any) => {
+  const updateItem = (index: number, field: "breadId" | "flavor" | "quantity", value: any) => {
     const newItems = [...items];
     newItems[index] = { ...newItems[index], [field]: value };
+    
+    // Auto-select first flavor if changing bread
+    if (field === "breadId") {
+      const selectedBread = breads.find(b => b.id === value);
+      newItems[index].flavor = selectedBread?.flavors?.[0] || "";
+    }
+    
     setItems(newItems);
   };
 
@@ -128,37 +136,59 @@ export default function AddOrderModal({
 
           <div className="space-y-3">
             <label className="block text-sm font-medium text-slate-700">Panes</label>
-            {items.map((item, index) => (
-              <div key={index} className="grid grid-cols-[1fr,auto,auto] gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
-                <select 
-                  required
-                  value={item.breadId}
-                  onChange={e => updateItem(index, "breadId", e.target.value)}
-                  className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white text-black font-medium text-sm"
-                >
-                  <option value="" disabled>Seleccione un pan</option>
-                  {breads.map(b => (
-                    <option key={b.id} value={b.id}>{b.name} (${b.price})</option>
-                  ))}
-                </select>
-                <input 
-                  required
-                  type="number" 
-                  min="1"
-                  value={item.quantity} 
-                  onChange={e => updateItem(index, "quantity", e.target.value === "" ? "" : parseInt(e.target.value))}
-                  className="w-20 px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-black font-medium text-sm text-center"
-                />
-                <button 
-                  type="button" 
-                  onClick={() => removeItem(index)}
-                  disabled={items.length === 1}
-                  className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30"
-                >
-                  <X className="w-4 h-4" />
-                </button>
-              </div>
-            ))}
+            {items.map((item, index) => {
+              const selectedBread = breads.find(b => b.id === item.breadId);
+              const hasFlavors = selectedBread?.flavors && selectedBread.flavors.length > 0;
+              
+              return (
+                <div key={index} className="grid grid-cols-[1fr,auto,auto] sm:grid-cols-[2fr,2fr,auto,auto] gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                  <select 
+                    required
+                    value={item.breadId}
+                    onChange={e => updateItem(index, "breadId", e.target.value)}
+                    className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white text-black font-medium text-sm"
+                  >
+                    <option value="" disabled>Seleccione pan</option>
+                    {breads.map(b => (
+                      <option key={b.id} value={b.id}>{b.name} (${b.price})</option>
+                    ))}
+                  </select>
+                  
+                  {hasFlavors ? (
+                    <select
+                      required
+                      value={item.flavor || ""}
+                      onChange={e => updateItem(index, "flavor", e.target.value)}
+                      className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white text-black font-medium text-sm"
+                    >
+                      <option value="" disabled>Sabor</option>
+                      {selectedBread.flavors.map((f: string) => (
+                        <option key={f} value={f}>{f}</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <div className="hidden sm:block"></div>
+                  )}
+
+                  <input 
+                    required
+                    type="number" 
+                    min="1"
+                    value={item.quantity} 
+                    onChange={e => updateItem(index, "quantity", e.target.value === "" ? "" : parseInt(e.target.value))}
+                    className="w-16 sm:w-20 px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-black font-medium text-sm text-center"
+                  />
+                  <button 
+                    type="button" 
+                    onClick={() => removeItem(index)}
+                    disabled={items.length === 1}
+                    className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                </div>
+              );
+            })}
             <button 
               type="button" 
               onClick={addItem}

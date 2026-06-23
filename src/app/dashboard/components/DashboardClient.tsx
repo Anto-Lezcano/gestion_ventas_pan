@@ -7,7 +7,7 @@ import OrderBoard from "./OrderBoard";
 import AddExpenseModal from "./AddExpenseModal";
 import ExpensesModal from "./ExpensesModal";
 import AddBreadModal from "./AddBreadModal";
-import { calculateBreadPrice } from "../../utils/price";
+import { calculateOrderTotal } from "../../utils/price";
 import { useRouter } from "next/navigation";
 
 export default function DashboardClient({ initialOrders, initialExpenses, breads, agentName }: any) {
@@ -65,7 +65,7 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
     let collectedDelivery = 0, pendingDelivery = 0;
 
     orders.forEach((o: any) => {
-      const breadTotal = o.items ? o.items.reduce((sum: number, item: any) => sum + calculateBreadPrice(item.bread, item.quantity), 0) : 0;
+      const breadTotal = o.items ? calculateOrderTotal(o.items) : 0;
       const deliveryTotal = o.deliveryCost || 0;
 
       if (o.isPaid) {
@@ -86,10 +86,12 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
       if (o.status === "PEDIDO" || o.status === "EN_PROCESO") {
         if (o.items) {
           o.items.forEach((item: any) => {
-            if (!counts[item.breadId]) {
-              counts[item.breadId] = { name: item.bread.name, qty: 0 };
+            const key = `${item.breadId}-${item.flavor || 'none'}`;
+            if (!counts[key]) {
+              const flavorText = item.flavor ? ` (${item.flavor})` : '';
+              counts[key] = { name: item.bread.name + flavorText, qty: 0 };
             }
-            counts[item.breadId].qty += item.quantity;
+            counts[key].qty += item.quantity;
           });
         }
       }

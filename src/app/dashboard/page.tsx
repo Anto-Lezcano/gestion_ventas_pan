@@ -1,7 +1,7 @@
 import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import DashboardClient from "./components/DashboardClient";
-import { getOrders, getBreads, seedBreads } from "../actions/order";
+import { getOrders, getBreads } from "../actions/order";
 import { getExpenses } from "../actions/expense";
 
 export default async function DashboardPage() {
@@ -11,9 +11,6 @@ export default async function DashboardPage() {
   if (!agentName) {
     redirect("/");
   }
-
-  // Asegurarnos de que haya panes
-  await seedBreads();
 
   const breads = await getBreads();
   const orders = await getOrders();

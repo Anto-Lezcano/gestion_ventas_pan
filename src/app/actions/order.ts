@@ -18,7 +18,7 @@ export async function calculateBreadPrice(breadId: string, quantity: number) {
 
 export async function createOrder(data: {
   titular: string
-  items: { breadId: string; quantity: number }[]
+  items: { breadId: string; flavor?: string; quantity: number }[]
   isDelivery: boolean
   deliveryCost?: number
   isPaid: boolean
@@ -36,6 +36,7 @@ export async function createOrder(data: {
       items: {
         create: data.items.map(item => ({
           breadId: item.breadId,
+          flavor: item.flavor,
           quantity: item.quantity
         }))
       }
@@ -88,13 +89,15 @@ export async function createBread(data: {
   description?: string
   price: number
   promotionPrice?: number
+  flavors?: string[]
 }) {
   await prisma.bread.create({
     data: {
       name: data.name,
       description: data.description,
       price: data.price,
-      promotionPrice: data.promotionPrice
+      promotionPrice: data.promotionPrice,
+      flavors: data.flavors || []
     }
   })
   revalidatePath('/dashboard')
@@ -103,13 +106,23 @@ export async function createBread(data: {
 export async function seedBreads() {
   const count = await prisma.bread.count()
   if (count === 0) {
-    await prisma.bread.create({
-      data: {
-        name: "Pan Casero",
-        description: "Pan de campo",
-        price: 2500,
-        promotionPrice: 4000
-      }
+    await prisma.bread.createMany({
+      data: [
+        {
+          name: "Pan Común",
+          description: "Pan sin relleno",
+          price: 2500,
+          promotionPrice: null,
+          flavors: ["Casero", "Saborizado", "Integral"]
+        },
+        {
+          name: "Pan Relleno",
+          description: "Pan con distintos rellenos (promo x2)",
+          price: 2500,
+          promotionPrice: 4000,
+          flavors: ["Jamón y Queso", "Salame y Queso", "Cantimpalo", "Roquefort"]
+        }
+      ]
     })
   }
 }
@@ -123,7 +136,7 @@ export async function deleteOrder(id: string) {
 
 export async function updateOrder(id: string, data: {
   titular: string
-  items: { breadId: string; quantity: number }[]
+  items: { breadId: string; flavor?: string; quantity: number }[]
   isDelivery: boolean
   deliveryCost?: number
   isPaid: boolean
@@ -141,6 +154,7 @@ export async function updateOrder(id: string, data: {
         deleteMany: {},
         create: data.items.map(item => ({
           breadId: item.breadId,
+          flavor: item.flavor,
           quantity: item.quantity
         }))
       }

@@ -21,15 +21,17 @@ model Bread {
   description    String?
   price          Float
   promotionPrice Float?
+  flavors        String[]    @default([])
   orderItems     OrderItem[]
 }
 
 model OrderItem {
-  id       String @id @default(uuid())
+  id       String  @id @default(uuid())
   orderId  String
-  order    Order  @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  order    Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
   breadId  String
-  bread    Bread  @relation(fields: [breadId], references: [id])
+  bread    Bread   @relation(fields: [breadId], references: [id])
+  flavor   String?
   quantity Int
 }
 

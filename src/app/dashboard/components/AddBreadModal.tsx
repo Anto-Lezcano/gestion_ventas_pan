@@ -15,6 +15,7 @@ export default function AddBreadModal({
   const [description, setDescription] = useState("");
   const [price, setPrice] = useState("");
   const [promotionPrice, setPromotionPrice] = useState("");
+  const [flavors, setFlavors] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!isOpen) return null;
@@ -27,13 +28,15 @@ export default function AddBreadModal({
         name,
         description: description || undefined,
         price: parseFloat(price),
-        promotionPrice: promotionPrice ? parseFloat(promotionPrice) : undefined
+        promotionPrice: promotionPrice ? parseFloat(promotionPrice) : undefined,
+        flavors: flavors ? flavors.split(',').map(f => f.trim()).filter(f => f) : undefined
       });
       // Reset
       setName("");
       setDescription("");
       setPrice("");
       setPromotionPrice("");
+      setFlavors("");
       onClose();
     } finally {
       setIsSubmitting(false);
@@ -74,6 +77,18 @@ export default function AddBreadModal({
               className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-black font-medium"
               placeholder="Ej. Relleno de salame picado grueso"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 mb-1">Sabores (separados por coma)</label>
+            <input 
+              type="text" 
+              value={flavors} 
+              onChange={e => setFlavors(e.target.value)}
+              className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-black font-medium"
+              placeholder="Ej. Jamón y Queso, Salame, Queso"
+            />
+            <p className="text-xs text-slate-500 mt-1">Si dejas esto vacío, el pan no tendrá menú de sabores.</p>
           </div>
 
           <div className="grid grid-cols-2 gap-4">

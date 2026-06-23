@@ -1,7 +1,7 @@
 "use client";
 
 import { updateOrderStatus, updateDeliveryCost, deleteOrder, updateOrderPaymentStatus } from "../../actions/order";
-import { calculateBreadPrice } from "../../utils/price";
+import { calculateOrderTotal } from "../../utils/price";
 import { Truck, MapPin, Edit2, Trash2, DollarSign } from "lucide-react";
 import { useState } from "react";
 import ConfirmModal from "./ConfirmModal";
@@ -31,7 +31,7 @@ export function OrderCard({ order, onEdit }: { order: any, onEdit: (order: any) 
   const [showConfirm, setShowConfirm] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const breadTotal = order.items ? order.items.reduce((sum: number, item: any) => sum + calculateBreadPrice(item.bread, item.quantity), 0) : 0;
+  const breadTotal = order.items ? calculateOrderTotal(order.items) : 0;
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     setIsUpdatingStatus(true);
@@ -92,7 +92,7 @@ export function OrderCard({ order, onEdit }: { order: any, onEdit: (order: any) 
           </div>
           <div className="text-sm text-slate-600 mb-1">
             {order.items && order.items.map((item: any, idx: number) => (
-              <div key={idx}>{item.quantity}x {item.bread.name}</div>
+              <div key={idx}>{item.quantity}x {item.bread.name} {item.flavor ? `(${item.flavor})` : ''}</div>
             ))}
             <div className="font-bold text-slate-800 mt-1">Total: ${breadTotal.toLocaleString('es-AR')}</div>
           </div>
