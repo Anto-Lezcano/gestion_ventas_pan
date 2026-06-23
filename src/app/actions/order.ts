@@ -18,8 +18,7 @@ export async function calculateBreadPrice(breadId: string, quantity: number) {
 
 export async function createOrder(data: {
   titular: string
-  breadId: string
-  quantity: number
+  items: { breadId: string; quantity: number }[]
   isDelivery: boolean
   deliveryCost?: number
   isPaid: boolean
@@ -29,13 +28,17 @@ export async function createOrder(data: {
   await prisma.order.create({
     data: {
       titular: data.titular,
-      breadId: data.breadId,
-      quantity: data.quantity,
       isDelivery: data.isDelivery,
       deliveryCost: data.deliveryCost,
       isPaid: data.isPaid,
       agentName: data.agentName,
       phone: data.phone,
+      items: {
+        create: data.items.map(item => ({
+          breadId: item.breadId,
+          quantity: item.quantity
+        }))
+      }
     }
   })
   revalidatePath('/dashboard')
@@ -67,13 +70,34 @@ export async function updateDeliveryCost(id: string, cost: number) {
 
 export async function getOrders() {
   return await prisma.order.findMany({
-    include: { bread: true },
+    include: { 
+      items: {
+        include: { bread: true }
+      }
+    },
     orderBy: { createdAt: 'desc' }
   })
 }
 
 export async function getBreads() {
   return await prisma.bread.findMany()
+}
+
+export async function createBread(data: {
+  name: string
+  description?: string
+  price: number
+  promotionPrice?: number
+}) {
+  await prisma.bread.create({
+    data: {
+      name: data.name,
+      description: data.description,
+      price: data.price,
+      promotionPrice: data.promotionPrice
+    }
+  })
+  revalidatePath('/dashboard')
 }
 
 export async function seedBreads() {
@@ -99,8 +123,7 @@ export async function deleteOrder(id: string) {
 
 export async function updateOrder(id: string, data: {
   titular: string
-  breadId: string
-  quantity: number
+  items: { breadId: string; quantity: number }[]
   isDelivery: boolean
   deliveryCost?: number
   isPaid: boolean
@@ -110,12 +133,17 @@ export async function updateOrder(id: string, data: {
     where: { id },
     data: {
       titular: data.titular,
-      breadId: data.breadId,
-      quantity: data.quantity,
       isDelivery: data.isDelivery,
       deliveryCost: data.deliveryCost,
       isPaid: data.isPaid,
       phone: data.phone,
+      items: {
+        deleteMany: {},
+        create: data.items.map(item => ({
+          breadId: item.breadId,
+          quantity: item.quantity
+        }))
+      }
     }
   })
   revalidatePath('/dashboard')

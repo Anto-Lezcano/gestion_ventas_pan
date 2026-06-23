@@ -19,8 +19,7 @@ export default function AddOrderModal({
 }) {
   const [titular, setTitular] = useState("");
   const [phone, setPhone] = useState("");
-  const [breadId, setBreadId] = useState("");
-  const [quantity, setQuantity] = useState(1);
+  const [items, setItems] = useState<{ breadId: string; quantity: number | string }[]>([{ breadId: "", quantity: 1 }]);
   const [isDelivery, setIsDelivery] = useState(false);
   const [deliveryCost, setDeliveryCost] = useState("");
   const [isPaid, setIsPaid] = useState(false);
@@ -30,16 +29,16 @@ export default function AddOrderModal({
     if (orderToEdit) {
       setTitular(orderToEdit.titular);
       setPhone(orderToEdit.phone || "");
-      setBreadId(orderToEdit.breadId);
-      setQuantity(orderToEdit.quantity);
+      setItems(orderToEdit.items && orderToEdit.items.length > 0 
+        ? orderToEdit.items.map((i: any) => ({ breadId: i.breadId, quantity: i.quantity })) 
+        : [{ breadId: breads[0]?.id || "", quantity: 1 }]);
       setIsDelivery(orderToEdit.isDelivery);
       setDeliveryCost(orderToEdit.deliveryCost !== null ? orderToEdit.deliveryCost.toString() : "");
       setIsPaid(orderToEdit.isPaid);
     } else {
       setTitular("");
       setPhone("");
-      setBreadId(breads[0]?.id || "");
-      setQuantity(1);
+      setItems([{ breadId: breads[0]?.id || "", quantity: 1 }]);
       setIsDelivery(false);
       setDeliveryCost("");
       setIsPaid(false);
@@ -55,8 +54,10 @@ export default function AddOrderModal({
       const data = {
         titular,
         phone,
-        breadId,
-        quantity,
+        items: items.map(item => ({
+          breadId: item.breadId,
+          quantity: typeof item.quantity === 'number' ? item.quantity : (parseInt(item.quantity as string) || 1)
+        })),
         isDelivery,
         deliveryCost: isDelivery && deliveryCost ? parseFloat(deliveryCost) : undefined,
         isPaid,
@@ -72,6 +73,20 @@ export default function AddOrderModal({
     } finally {
       setIsSubmitting(false);
     }
+  };
+
+  const addItem = () => {
+    setItems([...items, { breadId: breads[0]?.id || "", quantity: 1 }]);
+  };
+
+  const removeItem = (index: number) => {
+    setItems(items.filter((_, i) => i !== index));
+  };
+
+  const updateItem = (index: number, field: "breadId" | "quantity", value: any) => {
+    const newItems = [...items];
+    newItems[index] = { ...newItems[index], [field]: value };
+    setItems(newItems);
   };
 
   return (
@@ -111,31 +126,46 @@ export default function AddOrderModal({
             </div>
           </div>
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Pan</label>
-              <select 
-                required
-                value={breadId}
-                onChange={e => setBreadId(e.target.value)}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white text-black font-medium"
-              >
-                {breads.map(b => (
-                  <option key={b.id} value={b.id}>{b.name} (${b.price})</option>
-                ))}
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 mb-1">Cantidad</label>
-              <input 
-                required
-                type="number" 
-                min="1"
-                value={quantity} 
-                onChange={e => setQuantity(parseInt(e.target.value))}
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-black font-medium"
-              />
-            </div>
+          <div className="space-y-3">
+            <label className="block text-sm font-medium text-slate-700">Panes</label>
+            {items.map((item, index) => (
+              <div key={index} className="grid grid-cols-[1fr,auto,auto] gap-2 items-center bg-slate-50 p-3 rounded-xl border border-slate-100">
+                <select 
+                  required
+                  value={item.breadId}
+                  onChange={e => updateItem(index, "breadId", e.target.value)}
+                  className="w-full px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all bg-white text-black font-medium text-sm"
+                >
+                  <option value="" disabled>Seleccione un pan</option>
+                  {breads.map(b => (
+                    <option key={b.id} value={b.id}>{b.name} (${b.price})</option>
+                  ))}
+                </select>
+                <input 
+                  required
+                  type="number" 
+                  min="1"
+                  value={item.quantity} 
+                  onChange={e => updateItem(index, "quantity", e.target.value === "" ? "" : parseInt(e.target.value))}
+                  className="w-20 px-3 py-2 rounded-lg border border-slate-200 focus:border-orange-500 focus:ring-2 focus:ring-orange-200 outline-none transition-all text-black font-medium text-sm text-center"
+                />
+                <button 
+                  type="button" 
+                  onClick={() => removeItem(index)}
+                  disabled={items.length === 1}
+                  className="p-2 text-rose-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors disabled:opacity-30"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+            ))}
+            <button 
+              type="button" 
+              onClick={addItem}
+              className="text-sm font-medium text-orange-500 hover:text-orange-600 transition-colors flex items-center gap-1"
+            >
+              + Añadir otro pan
+            </button>
           </div>
 
           <div className="grid grid-cols-2 gap-4 pt-2">

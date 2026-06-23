@@ -31,7 +31,7 @@ export function OrderCard({ order, onEdit }: { order: any, onEdit: (order: any) 
   const [showConfirm, setShowConfirm] = useState(false);
   const [isUpdatingStatus, setIsUpdatingStatus] = useState(false);
 
-  const breadTotal = calculateBreadPrice(order.bread, order.quantity);
+  const breadTotal = order.items ? order.items.reduce((sum: number, item: any) => sum + calculateBreadPrice(item.bread, item.quantity), 0) : 0;
 
   const handleStatusChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
     setIsUpdatingStatus(true);
@@ -90,9 +90,12 @@ export function OrderCard({ order, onEdit }: { order: any, onEdit: (order: any) 
               {order.isPaid ? 'Pagado' : 'Falta Pago'}
             </span>
           </div>
-          <p className="text-sm text-slate-600">
-            {order.quantity}x {order.bread.name} <span className="font-bold text-slate-800">(${breadTotal.toLocaleString('es-AR')})</span>
-          </p>
+          <div className="text-sm text-slate-600 mb-1">
+            {order.items && order.items.map((item: any, idx: number) => (
+              <div key={idx}>{item.quantity}x {item.bread.name}</div>
+            ))}
+            <div className="font-bold text-slate-800 mt-1">Total: ${breadTotal.toLocaleString('es-AR')}</div>
+          </div>
         </div>
         <div className="flex flex-col items-end gap-2">
           <span className="inline-flex items-center gap-1 text-xs font-medium bg-white text-slate-600 px-2 py-1 rounded-lg shadow-sm border border-slate-100">

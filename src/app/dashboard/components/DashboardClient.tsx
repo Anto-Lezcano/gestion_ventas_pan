@@ -6,6 +6,7 @@ import AddOrderModal from "./AddOrderModal";
 import OrderBoard from "./OrderBoard";
 import AddExpenseModal from "./AddExpenseModal";
 import ExpensesModal from "./ExpensesModal";
+import AddBreadModal from "./AddBreadModal";
 import { calculateBreadPrice } from "../../utils/price";
 import { useRouter } from "next/navigation";
 
@@ -13,6 +14,7 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
   const [isOrderModalOpen, setIsOrderModalOpen] = useState(false);
   const [isAddExpenseOpen, setIsAddExpenseOpen] = useState(false);
   const [isExpensesModalOpen, setIsExpensesModalOpen] = useState(false);
+  const [isAddBreadOpen, setIsAddBreadOpen] = useState(false);
   
   const [orderToEdit, setOrderToEdit] = useState<any>(null);
   const [expenseToEdit, setExpenseToEdit] = useState<any>(null);
@@ -45,7 +47,7 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
 
   const orders = useMemo(() => {
     return initialOrders.filter((o: any) => {
-      if (filterBread !== "ALL" && o.breadId !== filterBread) return false;
+      if (filterBread !== "ALL" && !o.items.some((i: any) => i.breadId === filterBread)) return false;
       if (filterDelivery === "DELIVERY" && !o.isDelivery) return false;
       if (filterDelivery === "PICKUP" && o.isDelivery) return false;
       if (filterStatus !== "ALL" && o.status !== filterStatus) return false;
@@ -63,7 +65,7 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
     let collectedDelivery = 0, pendingDelivery = 0;
 
     orders.forEach((o: any) => {
-      const breadTotal = calculateBreadPrice(o.bread, o.quantity);
+      const breadTotal = o.items ? o.items.reduce((sum: number, item: any) => sum + calculateBreadPrice(item.bread, item.quantity), 0) : 0;
       const deliveryTotal = o.deliveryCost || 0;
 
       if (o.isPaid) {
@@ -82,10 +84,14 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
     const counts: Record<string, { name: string, qty: number }> = {};
     initialOrders.forEach((o: any) => {
       if (o.status === "PEDIDO" || o.status === "EN_PROCESO") {
-        if (!counts[o.breadId]) {
-          counts[o.breadId] = { name: o.bread.name, qty: 0 };
+        if (o.items) {
+          o.items.forEach((item: any) => {
+            if (!counts[item.breadId]) {
+              counts[item.breadId] = { name: item.bread.name, qty: 0 };
+            }
+            counts[item.breadId].qty += item.quantity;
+          });
         }
-        counts[o.breadId].qty += o.quantity;
       }
     });
     return Object.values(counts);
@@ -120,6 +126,12 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
               className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-rose-500 hover:bg-rose-600 text-white rounded-xl transition-colors font-medium text-sm shadow-md shadow-rose-200"
             >
               <TrendingDown className="w-4 h-4" /> Cargar Gasto
+            </button>
+            <button 
+              onClick={() => setIsAddBreadOpen(true)}
+              className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-4 py-3 sm:py-2 bg-amber-100 hover:bg-amber-200 text-amber-700 rounded-xl transition-colors font-medium text-sm border border-amber-200"
+            >
+              <Plus className="w-4 h-4" /> Nuevo Pan
             </button>
           </div>
         </div>
@@ -261,6 +273,11 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
           setIsExpensesModalOpen(false);
           handleEditExpense(e);
         }}
+      />
+
+      <AddBreadModal
+        isOpen={isAddBreadOpen}
+        onClose={() => setIsAddBreadOpen(false)}
       />
     </div>
   );
