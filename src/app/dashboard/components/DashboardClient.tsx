@@ -23,6 +23,8 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
   const [filterDelivery, setFilterDelivery] = useState("ALL");
   const [filterStatus, setFilterStatus] = useState("ALL");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const ORDERS_PER_PAGE = 9;
   const router = useRouter();
 
   const handleEditOrder = (order: any) => {
@@ -46,6 +48,7 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
   };
 
   const orders = useMemo(() => {
+    setCurrentPage(1); // Reset page when filters change
     return initialOrders.filter((o: any) => {
       if (filterBread !== "ALL" && !o.items.some((i: any) => i.breadId === filterBread)) return false;
       if (filterDelivery === "DELIVERY" && !o.isDelivery) return false;
@@ -55,6 +58,14 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
       return true;
     });
   }, [initialOrders, filterBread, filterDelivery, filterStatus, searchQuery]);
+
+  // Reset to page 1 when filters change
+  const filteredOrders = orders;
+  const totalPages = Math.ceil(filteredOrders.length / ORDERS_PER_PAGE);
+  const paginatedOrders = filteredOrders.slice(
+    (currentPage - 1) * ORDERS_PER_PAGE,
+    currentPage * ORDERS_PER_PAGE
+  );
 
   const pendingDeliveryPrice = useMemo(() => {
     return orders.some((o: any) => o.isDelivery && o.deliveryCost === null && o.status !== "ENTREGADO");
@@ -282,7 +293,44 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
             </div>
           </div>
 
-          <OrderBoard orders={orders} breads={breads} onEdit={handleEditOrder} />
+          <OrderBoard orders={paginatedOrders} breads={breads} onEdit={handleEditOrder} />
+
+          {/* Paginación */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-6 pt-4 border-t border-slate-100">
+              <button
+                onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                disabled={currentPage === 1}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                ← Anterior
+              </button>
+
+              <div className="flex items-center gap-1">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-9 h-9 rounded-lg text-sm font-bold transition-colors ${
+                      currentPage === page
+                        ? 'bg-orange-500 text-white shadow-md shadow-orange-200'
+                        : 'text-slate-500 hover:bg-slate-100'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                disabled={currentPage === totalPages}
+                className="px-3 py-2 rounded-lg text-sm font-medium text-slate-500 hover:bg-slate-100 disabled:opacity-30 disabled:cursor-not-allowed transition-colors"
+              >
+                Siguiente →
+              </button>
+            </div>
+          )}
         </div>
       </div>
 
