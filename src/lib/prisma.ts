@@ -1,11 +1,9 @@
-import { PrismaClient } from "@prisma/client";
+﻿import { PrismaClient } from "@prisma/client";
 import { Pool } from "pg";
 import { PrismaPg } from "@prisma/adapter-pg";
 
-// Obtener y limpiar la DATABASE_URL
 let databaseUrl = process.env.DATABASE_URL || "";
 
-// Remover comillas si existen
 if (databaseUrl.startsWith('"') && databaseUrl.endsWith('"')) {
   databaseUrl = databaseUrl.slice(1, -1);
 }
@@ -13,16 +11,16 @@ if (databaseUrl.startsWith("'") && databaseUrl.endsWith("'")) {
   databaseUrl = databaseUrl.slice(1, -1);
 }
 
-// Validar que la URL no esté vacía
 if (!databaseUrl) {
-  console.warn("DATABASE_URL no está definida en las variables de entorno");
+  console.warn("DATABASE_URL no esta definida en las variables de entorno");
 }
 
 const pool = new Pool({
   connectionString: databaseUrl,
-  max: 10,
-  idleTimeoutMillis: 30000,
-  connectionTimeoutMillis: 2000,
+  max: 2,
+  idleTimeoutMillis: 10000,
+  connectionTimeoutMillis: 10000,
+  allowExitOnIdle: true,
 });
 
 pool.on("error", (err) => {
@@ -32,11 +30,11 @@ pool.on("error", (err) => {
 const adapter = new PrismaPg(pool);
 
 const prismaClientSingleton = () => {
-  return new PrismaClient({ 
+  return new PrismaClient({
     adapter,
-    log: ["query", "info", "warn", "error"],
+    log: ["warn", "error"],
   });
-}
+};
 
 declare const globalThis: {
   prismaGlobal: ReturnType<typeof prismaClientSingleton>;

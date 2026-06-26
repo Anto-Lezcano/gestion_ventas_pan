@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useMemo } from "react";
-import { Plus, AlertTriangle, LogOut, ListOrdered, TrendingDown, Receipt, Search } from "lucide-react";
+import { Plus, AlertTriangle, LogOut, ListOrdered, TrendingDown, Receipt, Search, DollarSign, TrendingUp, Clock } from "lucide-react";
 import AddOrderModal from "./AddOrderModal";
 import OrderBoard from "./OrderBoard";
 import AddExpenseModal from "./AddExpenseModal";
@@ -77,7 +77,11 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
       }
     });
 
-    return { collectedBread, pendingBread, collectedDelivery, pendingDelivery };
+    return { collectedBread, pendingBread, collectedDelivery, pendingDelivery,
+      totalCollected: collectedBread + collectedDelivery,
+      totalPending: pendingBread + pendingDelivery,
+      grandTotal: collectedBread + collectedDelivery + pendingBread + pendingDelivery
+    };
   }, [orders]);
 
   const productionCount = useMemo(() => {
@@ -135,6 +139,36 @@ export default function DashboardClient({ initialOrders, initialExpenses, breads
             >
               <Plus className="w-4 h-4" /> Nuevo Pan
             </button>
+          </div>
+        </div>
+
+        {/* Resumen Financiero */}
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="bg-gradient-to-br from-emerald-500 to-emerald-600 p-5 rounded-3xl shadow-lg shadow-emerald-100 text-white">
+            <div className="flex items-center gap-2 mb-2 opacity-80">
+              <TrendingUp className="w-4 h-4" />
+              <span className="text-sm font-medium">Total Cobrado</span>
+            </div>
+            <p className="text-3xl font-bold">${stats.totalCollected.toLocaleString('es-AR')}</p>
+            <p className="text-xs mt-1 opacity-70">Panes ${stats.collectedBread.toLocaleString('es-AR')} + Envíos ${stats.collectedDelivery.toLocaleString('es-AR')}</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-amber-400 to-orange-500 p-5 rounded-3xl shadow-lg shadow-orange-100 text-white">
+            <div className="flex items-center gap-2 mb-2 opacity-80">
+              <Clock className="w-4 h-4" />
+              <span className="text-sm font-medium">Pendiente de Cobro</span>
+            </div>
+            <p className="text-3xl font-bold">${stats.totalPending.toLocaleString('es-AR')}</p>
+            <p className="text-xs mt-1 opacity-70">Panes ${stats.pendingBread.toLocaleString('es-AR')} + Envíos ${stats.pendingDelivery.toLocaleString('es-AR')}</p>
+          </div>
+
+          <div className="bg-gradient-to-br from-indigo-500 to-purple-600 p-5 rounded-3xl shadow-lg shadow-indigo-100 text-white">
+            <div className="flex items-center gap-2 mb-2 opacity-80">
+              <DollarSign className="w-4 h-4" />
+              <span className="text-sm font-medium">Total Generado</span>
+            </div>
+            <p className="text-3xl font-bold">${stats.grandTotal.toLocaleString('es-AR')}</p>
+            <p className="text-xs mt-1 opacity-70">Entre todos los pedidos del listado</p>
           </div>
         </div>
 
